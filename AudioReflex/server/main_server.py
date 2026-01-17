@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the parent directory (AudioReflex) to the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -5,7 +11,7 @@ from typing import List
 from datetime import timedelta
 from jose import JWTError, jwt
 
-# Import from the 'server' package
+# Use relative imports from within the 'server' package
 from server import auth, crud, models, schemas
 from server.database import SessionLocal, engine, init_db
 

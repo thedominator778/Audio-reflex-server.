@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the parent directory (AudioReflex) to the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from server.database import Base
