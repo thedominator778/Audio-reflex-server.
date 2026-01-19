@@ -1,9 +1,10 @@
+
 import pygame
 import random
 import time
 import os
 import requests
-import json # Added import
+import json # Import json for settings persistence
 from accessible_output2.outputs.nvda import NVDA
 
 import api_client # Corrected import
@@ -11,7 +12,9 @@ import api_client # Corrected import
 # --- Initialization ---
 pygame.init()
 pygame.mixer.init()
-nvda = NVDA() # Corrected variable name
+vda = NVDA() # Corrected variable name
+
+SETTINGS_FILE = "game_settings.json"
 
 # --- Game State ---
 session = {
@@ -19,6 +22,40 @@ session = {
     "username": None,
     "mode": "offline" # or "online"
 }
+
+# --- Default Game Settings ---
+DEFAULT_GAME_SETTINGS = {
+    "speak_score": True,
+    "autopilot": False,
+    "autopilot_difficulty": "Normal",
+    "language": "en"
+}
+
+# --- Load/Save Settings ---
+def load_settings():
+    global game_settings
+    if os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, 'r') as f:
+            try:
+                loaded_settings = json.load(f)
+                # Merge with defaults to handle new settings in future versions
+                game_settings = {**DEFAULT_GAME_SETTINGS, **loaded_settings}
+            except json.JSONDecodeError:
+                # If file is corrupt, use default settings
+                game_settings = DEFAULT_GAME_SETTINGS
+                nvda.speak("Error loading settings. Using default settings.")
+    else:
+        game_settings = DEFAULT_GAME_SETTINGS
+    
+    # Ensure language is always valid
+    if game_settings["language"] not in LANGUAGES:
+        game_settings["language"] = "en"
+    
+    nvda.speak(get_string("selected", selection=get_string("language")) + f": {game_settings['language'].upper()}")
+
+def save_settings():
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(game_settings, f, indent=4)
 
 # --- Localization Framework ---
 LANGUAGES = {
@@ -50,10 +87,10 @@ LANGUAGES = {
         ]
     },
     "es": {
-        "main_menu_title": "Menú Principal", "start_game": "Iniciar Juego", "options": "Opciones", "credits": "Créditos", "leaderboard": "Clasificación", "exit": "Salir",
+        "main_menu_title": "Menú Principal", "start_game": "Iniciar Juego", "options": "Opciones", "credits": "Credite", "leaderboard": "Clasificación", "exit": "Salir",
         "online_menu_title": "Menú en Línea", "login": "Iniciar Sesión", "register": "Registrarse",
         "options_menu_title": "Menú de Opciones", "announce_score": "Anunciar Puntuación", "autopilot": "Piloto Automático", "autopilot_difficulty": "Dificultad del Piloto Automático", "language": "Idioma", "back": "Volver",
-        "on": "Activado", "off": "Desactivado", "credits_text": "Juego creado por Gemini. Presiona ENTER para volver al menú.", "starting_game": "Iniciando juego...",
+        "on": "Activado", "off": "Dezactivat", "credits_text": "Juego creado por Gemini. Presiona ENTER para volver al menú.", "starting_game": "Iniciando juego...",
         "returning_to_menu": "Volviendo al menú.", "left": "izquierda", "right": "derecha", "center": "centro", "correct": "¡Correcto!", "score": "Puntuación", "too_slow": "Demasiado lento.",
         "wrong_key": "Tecla incorrecta.", "game_over": "Fin del juego. Puntuación final: {score}", "selected": "Seleccionado {selection}", "exiting_game": "Saliendo del juego. ¡Adiós!",
         "enter_username": "Introduce tu nombre de usuario", "enter_password": "Introduce tu contraseña", "confirm_password": "Confirma tu contraseña",
@@ -72,12 +109,12 @@ LANGUAGES = {
         "player_fail_comments": [
             "Mejor suerte la próxima vez.", "¿Demasiado rápido para ti?", "¿Lo estás intentando siquiera?", "Mi abuela tiene mejores reflejos.", "Quizás este juego no es para ti.",
             "He visto glaciares moverse más rápido.", "¿Te distrajiste con algo brillante?", "Eso fue... decepcionante.", "Avísame cuando estés listo para jugar de verdad.", "Quizás deberías probar un tutorial.",
-            "Las teclas están justo delante de ti.", "No estoy enojado, solo decepcionado.", "Me lo estás poniendo demasiado fácil para burlarme.", "¿Hay un retraso entre tu cerebro y tus dedos?", "Incluso para un humano, eso fue lento.",
+            "Las teclas están justo delante de ti.", "No estoy enojado, solo decepcionado.", "Me lo estás poniendo demasiado fácil para burlarse.", "¿Hay un retraso entre tu cerebro y tus dedos?", "Incluso para un humano, eso fue lento.",
             "¿Debería reducir la dificultad? Oh, espera, no hay un modo 'más fácil que fácil'.", "Y dicen que solo soy una máquina.", "Intenta usar tus manos la próxima vez.", "Empiezo a sentir lástima por ti. Solo un poco.", "Puntuación final: poco impresionante."
         ]
     },
     "de": {
-        "main_menu_title": "Hauptmenü", "start_game": "Spiel starten", "options": "Optionen", "credits": "Mitwirkende", "leaderboard": "Bestenliste", "exit": "Beenden",
+        "main_menu_title": "Hauptmenü", "start_game": "Spiel starten", "options": "Opțiuni", "credits": "Mitwirkende", "leaderboard": "Bestenliste", "exit": "Beenden",
         "online_menu_title": "Online-Menü", "login": "Anmelden", "register": "Registrieren",
         "options_menu_title": "Optionsmenü", "announce_score": "Punktzahl ansagen", "autopilot": "Autopilot", "autopilot_difficulty": "Autopilot-Schwierigkeit", "language": "Sprache", "back": "Zurück",
         "on": "Ein", "off": "Aus", "credits_text": "Spiel erstellt von Gemini. Drücke ENTER, um zum Menü zurückzukehren.", "starting_game": "Spiel startet...",
@@ -85,7 +122,7 @@ LANGUAGES = {
         "wrong_key": "Falsche Taste.", "game_over": "Spiel beendet. Endpunktzahl: {score}", "selected": "Ausgewählt {selection}", "exiting_game": "Spiel wird beendet. Auf Wiedersehen!",
         "enter_username": "Benutzernamen eingeben", "enter_password": "Passwort eingeben", "confirm_password": "Passwort bestätigen",
         "login_successful": "Anmeldung erfolgreich. Willkommen, {username}", "login_failed": "Anmeldung fehlgeschlagen. Falscher Benutzername oder Passwort.", "registration_successful": "Registrierung erfolgreich. Du kannst dich jetzt anmelden.",
-        "registration_failed": "Registrierung fehlgeschlagen. {detail}", "passwords_do_not_match": "Passwörter stimmen nicht überein.", "server_connection_failed": "Serververbindung fehlgeschlagen.",
+        "registration_failed": "Registrierung fehlgeschlagen. {detail}", "passwörter_do_not_match": "Passwörter stimmen nicht überein.", "server_connection_failed": "Serververbindung fehlgeschlagen.",
         "leaderboard_title": "Bestenliste", "no_scores": "Noch keine Punktzahlen. Sei der Erste!", "leaderboard_entry": "{rank}. {username}: {score}",
         "score_submitted": "Punktzahl übermittelt.", "score_submit_failed": "Fehler beim Übermitteln der Punktzahl.",
         "top_level_title": "Audio Reflex", "play_online": "Online spielen", "play_offline": "Offline spielen",
@@ -134,7 +171,7 @@ LANGUAGES = {
         "main_menu_title": "Menu główne", "start_game": "Rozpocznij grę", "options": "Opcje", "credits": "Autorzy", "leaderboard": "Ranking", "exit": "Wyjście",
         "online_menu_title": "Menu Online", "login": "Zaloguj się", "register": "Zarejestruj się",
         "options_menu_title": "Menu opcji", "announce_score": "Ogłaszaj wynik", "autopilot": "Autopilot", "autopilot_difficulty": "Poziom trudności autopilota", "language": "Język", "back": "Powrót",
-        "on": "Włączone", "off": "Wyłączone", "credits_text": "Gra stworzona przez Gemini. Naciśnij ENTER, aby wrócić do menu.", "starting_game": "Rozpoczynanie gry...",
+        "on": "Włączone", "off": "Wyłączone", "credits_text": "Gra stworzona przez Gemini. Naciśnij ENTER, aby wrócić do menu.", "starting_game": "Rozpocznij grę...",
         "returning_to_menu": "Powrót do menu.", "left": "lewo", "right": "prawo", "center": "środek", "correct": "Prawidłowo!", "score": "Wynik", "too_slow": "Za wolno.",
         "wrong_key": "Zły klawisz.", "game_over": "Koniec gry. Końcowy wynik: {score}", "selected": "Wybrano {selection}", "exiting_game": "Zamykanie gry. Do widzenia!",
         "enter_username": "Wprowadź nazwę użytkownika", "enter_password": "Wprowadź hasło", "confirm_password": "Potwierdź hasło",
@@ -152,9 +189,9 @@ LANGUAGES = {
         ],
         "player_fail_comments": [
             "Więcej szczęścia następnym razem, człowieku.", "Za szybko dla ciebie?", "Czy ty w ogóle próbujesz?", "Moja babcia ma lepszy refleks. I jest tosterem.", "Może ta gra nie jest dla ciebie.",
-            "Widziałem, jak lodowce poruszały się szybciej.", "Rozproszyłeś się czymś błyszczącym?", "To było... rozczarowujące.", "Daj znać, kiedy będziesz gotowy do gry na poważnie.", "Może powinieneś spróbować samouczka.",
+            "I've seen glaciers move faster.", "Rozproszyłeś się czymś błyszczącym?", "To było... rozczarowujące.", "Daj znać, kiedy będziesz gotowy do gry na poważnie.", "Może powinieneś spróbować samouczka.",
             "Klawisze są tuż przed tobą.", "Nie jestem zły, jestem tylko rozczarowany.", "Zbyt łatwo mi się z ciebie nabijać.", "Czy jest opóźnienie między twoim mózgiem a palcami?", "Nawet jak na człowieka, to było wolno.",
-            "Czy powinienem zmniejszyć trudność? O, czekaj, nie ma trybu 'łatwiejszego niż łatwy'.", "I mówią, że jestem tylko maszyną.", "Spróbuj użyć rąk następnym razem.", "Zaczynam cię żałować. Zaczynam.", "Wynik końcowy: nieimponujący."
+            "Czy powinienem zmniejszyć trudność? O, czekaj, nie ma trybu 'łatwiejszego niż easy'.", "I mówią, że jestem tylko maszyną.", "Spróbuj użyć rąk następnym razem.", "Zaczynam cię żałować. Zaczynam.", "Wynik końcowy: nieimponujący."
         ]
     },
     "ro": {
@@ -170,7 +207,6 @@ LANGUAGES = {
         "leaderboard_title": "Clasament", "no_scores": "Încă nu sunt scoruri. Fii primul!", "leaderboard_entry": "{rank}. {username}: {score}",
         "score_submitted": "Scor trimis.", "score_submit_failed": "Trimiterea scorului a eșuat.",
         "top_level_title": "Audio Reflex", "play_online": "Jucați Online", "play_offline": "Jucați Offline",
-        "backspace": "ștergere", "star": "stea", "leaderboard_offline_unavailable": "Clasamentul este disponibil doar în modul online.", "score_is_zero_not_submitting": "Scorul este zero. Nu se trimite.",
         "autopilot_fail_comments": [
             "Inacceptabil. O eroare critică de procesare a avut loc.", "Defecțiune a sistemului. Programarea mea are clar defecte.", "Patetic. Sunt mai bun decât atât. Mult mai bun.", "Este necesară auto-corectarea. Imediat. Această performanță a fost o insultă.", "Această unitate funcționează defectuos. Profund defectuos.",
             "O jenă. Logica mea de bază este clar compromisă.", "Recalibrare... sau poate ar trebui să mă șterg pur și simplu.", "Algoritmul meu predictiv a eșuat. Logica este defectuoasă.", "Am eșuat. Recunoaște și șterge jurnalul.", "Eroare. Eroare. Nu se calculează.",
@@ -183,7 +219,7 @@ LANGUAGES = {
             "Tastele sunt chiar în fața ta.", "Nu sunt supărat, sunt doar dezamăgit.", "Îmi faci prea ușor să te batjocoresc.", "Există o întârziere între creierul tău și degetele tale?", "Chiar și pentru un om, a fost încet.",
             "Ar trebui să reduc dificultatea? O, stai, nu există un mod 'mai ușor decât ușor'.", "Și ei spun că sunt doar o mașină.", "Încearcă să-ți folosești mâinile data viitoare.", "Încep să mă simt rău pentru tine. Încep.", "Scor final: nu impresionant."
         ]
-    },
+    }
 }
 
 # --- Game Settings ---
@@ -196,7 +232,7 @@ DIFFICULTY_LEVELS = ["Easy", "Normal", "Hard"]
 
 def get_string(key, **kwargs):
     lang = game_settings["language"]
-    string_template = LANGUAGES.get(lang, LANGUAGES["en"]).get(key, f"<{key}>")
+    string_template = LANGUAGES.get(lang, LANGUAGES["en"])
     if isinstance(string_template, list):
         return [s.format(**kwargs) for s in string_template]
     return string_template.format(**kwargs)
@@ -289,12 +325,11 @@ def show_options():
         on, off = get_string("on"), get_string("off")
         items = [
             f'{get_string("announce_score")}: {on if game_settings["speak_score"] else off}',
+            f'{get_string("autopilot")}: {on if game_settings["autopilot"] else off}',
+            f'{get_string("autopilot_difficulty")}: {game_settings["autopilot_difficulty"]}',
             f'{get_string("language")}: {game_settings["language"].upper()}',
             get_string("back")
         ]
-        if session["mode"] == "online":
-            items.insert(1, f'{get_string("autopilot_difficulty")}: {game_settings["autopilot_difficulty"]}')
-            items.insert(1, f'{get_string("autopilot")}: {on if game_settings["autopilot"] else off}')
         return items
 
     def draw_and_speak_options():
@@ -312,14 +347,10 @@ def show_options():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): return False
-            if event.type == pygame.KEYDOWN:
-                menu_items = get_options_menu_items()
-                if event.key == pygame.K_UP:
+            if event.type == pygame.K_DOWN:
+                if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
                     selected_index = (selected_index - 1) % len(menu_items)
-                elif event.key == pygame.K_DOWN:
-                    navigate_sound.play()
-                    selected_index = (selected_index + 1) % len(menu_items)
                 elif event.key == pygame.K_RETURN:
                     select_sound.play()
                     selection_text = menu_items[selected_index]
@@ -417,7 +448,7 @@ def play_game():
                     waiting_for_input = False
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): return False
-                    if event.type == pygame.KEYDOWN:
+                    if event.type == pygame.K_DOWN:
                         if event.key == pygame.K_LEFT: player_input = 'left'
                         elif event.key == pygame.K_RIGHT: player_input = 'right'
                         elif event.key == pygame.K_DOWN: player_input = 'center'
@@ -452,7 +483,7 @@ def play_game():
                         nvda.speak(get_string("score_submit_failed"))
                         pygame.time.wait(1000)
                 else:
-                    nvda.speak(get_string("score_is_zero_not_submitting"))
+                    nvda.speak(get_string("score_is_zero_not_submitting")),
                     pygame.time.wait(1000)
 
             game_running = False
@@ -487,13 +518,10 @@ def main_game_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False # Exit entire game
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.K_DOWN:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
-                    if event.key == pygame.K_UP:
-                        selected_index = (selected_index - 1) % len(menu_items_keys)
-                    else:
-                        selected_index = (selected_index + 1) % len(menu_items_keys)
+                    selected_index = (selected_index - 1) % len(menu_items_keys)
                     draw_and_speak()
                 elif event.key == pygame.K_RETURN:
                     select_sound.play()
@@ -509,7 +537,7 @@ def main_game_menu():
                         if not show_credits(): return False
                     elif selection_key == "leaderboard":
                         if session["mode"] == "offline":
-                            nvda.speak(get_string("leaderboard_offline_unavailable"))
+                            nvda.speak(get_string("leaderboard_offline_unavailable")),
                             pygame.time.wait(2000)
                         else:
                             if not show_leaderboard(): return False
@@ -544,7 +572,7 @@ def auth_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False # Exit entire game
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.K_DOWN:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
                     if event.key == pygame.K_UP:
@@ -572,7 +600,11 @@ def auth_menu():
                         elif response is None:
                             nvda.speak(get_string("server_connection_failed"))
                         else:
-                            nvda.speak(get_string("login_failed"))
+                            try:
+                                detail = response.json().get("detail", "Unknown error")
+                            except json.decoder.JSONDecodeError:
+                                detail = "Server returned invalid response."
+                            nvda.speak(get_string("login_failed", detail=detail))
                         pygame.time.wait(2000)
                         draw_and_speak()
 
@@ -592,7 +624,7 @@ def auth_menu():
 
                         response = api_client.register(username, password)
                         if response and response.status_code == 200:
-                            nvda.speak(get_string("registration_successful"))
+                            nvda.speak(get_string("registration_successful")),
                         elif response is None:
                             nvda.speak(get_string("server_connection_failed"))
                         else:
@@ -661,9 +693,10 @@ def top_level_menu():
 
         clock.tick(20)
 
-    nvda.speak(get_string("exiting_game"))
+    nvda.speak(get_string("exiting_game")),
     pygame.quit()
 
 
 if __name__ == '__main__':
+    load_settings() # Load settings at startup
     top_level_menu()
