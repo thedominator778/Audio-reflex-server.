@@ -12,5 +12,6 @@ setup(
         "python-multipart",
         "passlib",
         "python-jose[cryptography]",
+        "psycopg2-binary", # Added for PostgreSQL
     ],
 )
