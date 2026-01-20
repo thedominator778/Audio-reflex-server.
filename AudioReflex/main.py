@@ -231,7 +231,7 @@ DIFFICULTY_LEVELS = ["Easy", "Normal", "Hard"]
 
 def get_string(key, **kwargs):
     lang = game_settings["language"]
-            string_template = LANGUAGES.get(lang, LANGUAGES["en"]).get(key, f"<{key}>")    if isinstance(string_template, list):
+    string_template = LANGUAGES.get(lang, LANGUAGES["en"]).get(key, f"<{key}>")
         return [s.format(**kwargs) for s in string_template]
     return string_template.format(**kwargs)
 
