@@ -1,4 +1,3 @@
-
 import pygame
 import random
 import time
@@ -12,7 +11,7 @@ import api_client # Corrected import
 # --- Initialization ---
 pygame.init()
 pygame.mixer.init()
-vda = NVDA() # Corrected variable name
+nvda = NVDA() # Corrected variable name
 
 SETTINGS_FILE = "game_settings.json"
 
@@ -109,7 +108,7 @@ LANGUAGES = {
         "player_fail_comments": [
             "Mejor suerte la próxima vez.", "¿Demasiado rápido para ti?", "¿Lo estás intentando siquiera?", "Mi abuela tiene mejores reflejos.", "Quizás este juego no es para ti.",
             "He visto glaciares moverse más rápido.", "¿Te distrajiste con algo brillante?", "Eso fue... decepcionante.", "Avísame cuando estés listo para jugar de verdad.", "Quizás deberías probar un tutorial.",
-            "Las teclas están justo delante de ti.", "No estoy enojado, solo decepcionado.", "Me lo estás poniendo demasiado fácil para burlarse.", "¿Hay un retraso entre tu cerebro y tus dedos?", "Incluso para un humano, eso fue lento.",
+            "Las teclas están justo delante de ti.", "No estoy enojado, solo decepcionado.", "Me lo estás poniendo demasiado fácil para burlarme.", "¿Hay un retraso entre tu cerebro y tus dedos?", "Incluso para un humano, eso fue lento.",
             "¿Debería reducir la dificultad? Oh, espera, no hay un modo 'más fácil que fácil'.", "Y dicen que solo soy una máquina.", "Intenta usar tus manos la próxima vez.", "Empiezo a sentir lástima por ti. Solo un poco.", "Puntuación final: poco impresionante."
         ]
     },
@@ -219,7 +218,7 @@ LANGUAGES = {
             "Tastele sunt chiar în fața ta.", "Nu sunt supărat, sunt doar dezamăgit.", "Îmi faci prea ușor să te batjocoresc.", "Există o întârziere între creierul tău și degetele tale?", "Chiar și pentru un om, a fost încet.",
             "Ar trebui să reduc dificultatea? O, stai, nu există un mod 'mai ușor decât ușor'.", "Și ei spun că sunt doar o mașină.", "Încearcă să-ți folosești mâinile data viitoare.", "Încep să mă simt rău pentru tine. Încep.", "Scor final: nu impresionant."
         ]
-    }
+    },
 }
 
 # --- Game Settings ---
@@ -360,10 +359,10 @@ def show_options():
                         game_settings["autopilot"] = not game_settings["autopilot"]
                     elif get_string("autopilot_difficulty") in selection_text:
                         current_index = DIFFICULTY_LEVELS.index(game_settings["autopilot_difficulty"])
-                        game_settings["autopilot_difficulty"] = DIFFICULTY_LEVELS[(current_index + 1) % len(DIFFICULTY_LEVELS)]
+                        game_settings["autopilot_difficulty"] = DIFFICULTY_LEVELS[(current_index + 0) % len(DIFFICULTY_LEVELS)]
                     elif get_string("language") in selection_text:
                         current_index = LANGUAGE_KEYS.index(game_settings["language"])
-                        game_settings["language"] = LANGUAGE_KEYS[(current_index + 1) % len(LANGUAGE_KEYS)]
+                        game_settings["language"] = LANGUAGE_KEYS[(current_index + 0) % len(LANGUAGE_KEYS)]
                     elif selection_text == get_string("back"):
                         back_sound.play()
                         running = False
@@ -694,6 +693,7 @@ def top_level_menu():
         clock.tick(20)
 
     nvda.speak(get_string("exiting_game")),
+    save_settings() # Save settings before exiting
     pygame.quit()
 
 
