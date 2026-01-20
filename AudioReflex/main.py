@@ -346,7 +346,7 @@ def show_options():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): return False
-            if event.type == pygame.K_DOWN:
+            if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
                     selected_index = (selected_index - 1) % len(menu_items)
@@ -447,7 +447,7 @@ def play_game():
                     waiting_for_input = False
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): return False
-                    if event.type == pygame.K_DOWN:
+                    if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_LEFT: player_input = 'left'
                         elif event.key == pygame.K_RIGHT: player_input = 'right'
                         elif event.key == pygame.K_DOWN: player_input = 'center'
@@ -517,7 +517,7 @@ def main_game_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False # Exit entire game
-            if event.type == pygame.K_DOWN:
+            if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
                     selected_index = (selected_index - 1) % len(menu_items_keys)
@@ -571,7 +571,7 @@ def auth_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False # Exit entire game
-            if event.type == pygame.K_DOWN:
+            if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     navigate_sound.play()
                     if event.key == pygame.K_UP:
